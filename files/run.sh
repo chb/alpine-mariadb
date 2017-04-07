@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/with-contenv sh
 # execute any pre-init scripts
 for i in /scripts/pre-init.d/*sh
 do
@@ -44,7 +44,7 @@ else
 	cat << EOF > $tfile
 USE mysql;
 FLUSH PRIVILEGES;
-GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD' WITH GRANT OPTION;
 UPDATE user SET password=PASSWORD("$MYSQL_ROOT_PASSWORD") WHERE user='root';
 GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
 UPDATE user SET password=PASSWORD("") WHERE user='root' AND host='localhost';
@@ -59,8 +59,9 @@ EOF
 		echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';" >> $tfile
 	    fi
 	fi
-
+# echo "running $tfile..."
 	/usr/bin/mysqld --user=mysql --bootstrap --verbose=0 < $tfile
+# echo "removing $tfile."
 	rm -f $tfile
 fi
 
@@ -72,5 +73,5 @@ do
 		. ${i}
 	fi
 done
-
+# echo "running mysqld..."
 exec /usr/bin/mysqld --user=mysql --console
